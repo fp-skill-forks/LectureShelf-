@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-title" content="Mneme Preview">
 <meta name="theme-color" content="#f6f1ea">
 <title>Mneme Preview</title>
-<link rel="stylesheet" href="./mneme-v2.css?v=13">
+<link rel="stylesheet" href="./mneme-v2.css?v=14">
 <style>
 .fab{display:none!important}#topAdd[hidden]{display:none!important}
 .labelHint{display:block;text-transform:none;letter-spacing:0;font-weight:400;font-size:10px;color:var(--muted);margin-top:7px}
@@ -16,6 +16,7 @@
 .labelChoice.active{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--paper));color:var(--accent)}
 .labelAdd{border-style:dashed;color:var(--accent)}
 .labelTag{background:color-mix(in srgb,var(--accent) 10%,transparent)!important;border-color:color-mix(in srgb,var(--accent) 28%,var(--line))!important;color:var(--accent)}
+.notesList{display:flex;flex-direction:column;gap:8px;margin:12px 0}.noteRow{background:var(--soft);border-radius:12px;padding:10px 11px}.noteTop{display:flex;align-items:center;gap:8px;margin-bottom:4px}.noteTime{border:0;background:var(--paper);color:var(--accent);border-radius:999px;padding:4px 7px;font-size:10px;font-weight:800}.noteText{font-size:12px;line-height:1.35}.noteMeta{font-size:9px;color:var(--muted);margin-left:auto}.noteDelete{border:0;background:transparent;color:var(--danger);font-size:11px}.noteComposer{display:grid;grid-template-columns:88px minmax(0,1fr);gap:8px;align-items:start}.noteComposer input,.noteComposer textarea{margin-top:0}.noteComposer textarea{min-height:58px}.notesEmpty{font-size:11px;color:var(--muted);padding:10px 2px}.notesGeneral{margin-bottom:14px}
 </style>
 </head>
 <body>
@@ -23,7 +24,9 @@
 <nav class="tabbar" aria-label="Main navigation"><button data-tab="home" onclick="Mneme.setTab('home')"><span>⌂</span>Home</button><button data-tab="library" onclick="Mneme.setTab('library')"><span>▤</span>Library</button><button data-tab="collections" onclick="Mneme.setTab('collections')"><span>◫</span>Collections</button><button data-tab="settings" onclick="Mneme.setTab('settings')"><span>⚙︎</span>Settings</button></nav>
 <div id="saveBackdrop" class="backdrop" onclick="if(event.target===this)Mneme.closeSave()"><section class="sheet"><div class="handle"></div><div class="sheetHead"><h2>Save to Mneme</h2><button class="quiet" onclick="Mneme.closeSave()">Done</button></div><label>Link<input id="saveUrl" inputmode="url" placeholder="Paste a link"></label><div id="savePreview" class="preview"><div class="previewIcon">＋</div><div><b>Paste or share a link</b><small>Preview will appear here</small></div></div><label>Title<input id="saveTitle" placeholder="Optional title"></label><label>Category<div class="collectionRow"><select id="saveCollection"></select><button class="newCollection" onclick="Mneme.newCollectionFromSave()">+ New</button></div></label><label>Additional Labels<input id="saveLabels" type="hidden"><div id="saveLabelPicker" class="labelPicker"></div><span class="labelHint">Choose any that apply, or create a new label.</span></label><label>Note<textarea id="saveNote" placeholder="Why did you save this?"></textarea></label><button class="primary" onclick="Mneme.saveItem()">Save</button></section></div>
 <div id="editBackdrop" class="backdrop" onclick="if(event.target===this)Mneme.closeEdit()"><section class="sheet"><div class="handle"></div><div class="sheetHead"><h2>Edit details</h2><button class="quiet" onclick="Mneme.closeEdit()">Done</button></div><label>Title<input id="editTitle"></label><label>Category<select id="editCollection"></select></label><label>Additional Labels<input id="editLabels" type="hidden"><div id="editLabelPicker" class="labelPicker"></div><span class="labelHint">Choose any that apply, or create a new label.</span></label><label>Note<textarea id="editNote"></textarea></label><button class="primary" onclick="Mneme.saveEdit()">Save changes</button><button class="delete" onclick="Mneme.deleteEditing()">Remove item</button></section></div>
-<script src="./mneme-v2.js?v=13"></script>
+<div id="notesBackdrop" class="backdrop" onclick="if(event.target===this)MnemeNotes.close()"><section class="sheet"><div class="handle"></div><div class="sheetHead"><h2 id="notesTitle">Notes</h2><button class="quiet" onclick="MnemeNotes.close()">Done</button></div><label class="notesGeneral">General note<textarea id="generalNote" placeholder="What matters about this?"></textarea></label><button class="primary" onclick="MnemeNotes.saveGeneral()">Save general note</button><div id="timestampSection"><div class="sectionHead" style="margin-top:18px"><h2>Timestamped notes</h2></div><div id="notesList" class="notesList"></div><label>Add note<div class="noteComposer"><input id="noteTime" placeholder="12:43" inputmode="numeric"><textarea id="noteText" placeholder="What happens here?"></textarea></div></label><button class="primary" onclick="MnemeNotes.addTimestamp()">Add timestamped note</button></div></section></div>
+<script src="./mneme-v2.js?v=14"></script>
 <script src="./labels.js?v=3"></script>
+<script src="./notes.js?v=1"></script>
 <script>(()=>{const sync=()=>{const b=document.getElementById('topAdd');if(b)b.hidden=!!document.querySelector('[data-tab="settings"].active')};new MutationObserver(sync).observe(document.querySelector('.tabbar'),{subtree:true,attributes:true,attributeFilter:['class']});sync()})();</script>
 </body></html>
