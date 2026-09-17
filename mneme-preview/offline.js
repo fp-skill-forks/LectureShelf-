@@ -5,10 +5,11 @@
   const $=id=>document.getElementById(id);
   const getLibrary=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return{items:[]}}};
   const putLibrary=d=>localStorage.setItem(KEY,JSON.stringify(d));
-  const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]));
   let dbPromise=null;
   let offlineUid='';
   let scrollTimer=null;
+  let decorateScheduled=false;
   const offlineIds=new Set();
 
   function eligible(x){
@@ -93,19 +94,27 @@
     return m?.[1]||'';
   }
   function decorate(){
-    document.querySelectorAll('.mnemeOfflineBadge').forEach(b=>b.remove());
     document.querySelectorAll('.item').forEach(card=>{
-      const uid=uidFromItemCard(card);
-      if(!uid||!offlineIds.has(uid))return;
-      const tags=card.querySelector('.tags');
-      if(tags){const b=document.createElement('span');b.className='tag mnemeOfflineBadge';b.textContent='Offline';tags.appendChild(b)}
+      const uid=uidFromItemCard(card),shouldShow=!!uid&&offlineIds.has(uid);
+      let badge=card.querySelector('.mnemeOfflineBadge');
+      if(shouldShow&&!badge){
+        const tags=card.querySelector('.tags');
+        if(tags){badge=document.createElement('span');badge.className='tag mnemeOfflineBadge';badge.textContent='Offline';tags.appendChild(badge)}
+      }else if(!shouldShow&&badge)badge.remove();
     });
     document.querySelectorAll('.continueCard').forEach(card=>{
-      const m=(card.getAttribute('onclick')||'').match(/Mneme\.openItem\('([^']+)'\)/),uid=m?.[1]||'';
-      if(!uid||!offlineIds.has(uid))return;
-      const meta=card.querySelector('.meta');
-      if(meta){const b=document.createElement('span');b.className='mnemeOfflineBadge';b.textContent=' · Offline';meta.appendChild(b)}
+      const m=(card.getAttribute('onclick')||'').match(/Mneme\.openItem\('([^']+)'\)/),uid=m?.[1]||'',shouldShow=!!uid&&offlineIds.has(uid);
+      let badge=card.querySelector('.mnemeOfflineBadge');
+      if(shouldShow&&!badge){
+        const meta=card.querySelector('.meta');
+        if(meta){badge=document.createElement('span');badge.className='mnemeOfflineBadge';badge.textContent=' · Offline';meta.appendChild(badge)}
+      }else if(!shouldShow&&badge)badge.remove();
     });
+  }
+  function scheduleDecorate(){
+    if(decorateScheduled)return;
+    decorateScheduled=true;
+    requestAnimationFrame(()=>{decorateScheduled=false;decorate()});
   }
   async function download(uid){
     const d=getLibrary(),x=(d.items||[]).find(i=>i.uid===uid);
@@ -125,7 +134,7 @@
       if(x.readerCached)delete x.readerCached;
       x.updated=Date.now();
       putLibrary(d);
-      decorate();
+      scheduleDecorate();
       alert('Available offline.');
     }catch(e){
       alert('This article could not be downloaded for offline reading.');
@@ -138,7 +147,7 @@
       const d=getLibrary(),x=(d.items||[]).find(i=>i.uid===uid);
       if(x?.readerCached)delete x.readerCached;
       if(x){x.updated=Date.now();putLibrary(d)}
-      decorate();
+      scheduleDecorate();
       alert('Offline copy removed.');
     }catch{alert('The offline copy could not be removed.')}
   }
@@ -175,7 +184,7 @@
         try{
           const rec=await read(uid);
           if(rec){openOfflineReader(x,rec);return}
-          offlineIds.delete(uid);decorate();
+          offlineIds.delete(uid);scheduleDecorate();
         }catch{}
       }
       return baseOpen(uid);
@@ -219,7 +228,7 @@
   window.addEventListener('pagehide',saveOfflineProgress);
 
   const view=$('view');
-  if(view)new MutationObserver(()=>requestAnimationFrame(decorate)).observe(view,{childList:true,subtree:true});
-  loadIds().then(ids=>{ids.forEach(id=>offlineIds.add(String(id)));decorate()}).catch(()=>{});
+  if(view)new MutationObserver(scheduleDecorate).observe(view,{childList:true});
+  loadIds().then(ids=>{ids.forEach(id=>offlineIds.add(String(id)));scheduleDecorate()}).catch(()=>{});
   window.MnemeOffline={download,remove:removeDownload,isSaved:uid=>offlineIds.has(uid)};
 })();
